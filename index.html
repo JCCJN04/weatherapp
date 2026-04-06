@@ -5,59 +5,133 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weather App Glassmorphism</title>
+  <title>Trail Weather — Clima para Senderismo</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-  <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
 
-  <!-- Custom CSS -->
   <link rel="stylesheet" href="./style.css">
 </head>
 
 <body>
-  <!-- Fullscreen Map Container -->
   <div id="map"></div>
 
-  <!-- Glassmorphism Weather Panel -->
   <main class="weather-panel">
-    <!-- Weather Information Display -->
+
+    <!-- Sheet Handle (mobile only) -->
+    <div class="sheet-handle" id="sheet-handle" aria-label="Expandir/Colapsar panel">
+      <div class="sheet-handle-bar"></div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+      <div class="search-input-group">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="city-input" placeholder="Buscar lugar o sendero..." autocomplete="off" />
+      </div>
+      <button id="search-btn" class="search-btn">Buscar</button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading-state" class="loading-state hidden">
+      <div class="spinner"></div>
+      <p>Consultando condiciones...</p>
+    </div>
+
+    <!-- Initial State -->
+    <div id="initial-state" class="initial-state">
+      <div class="initial-icon">⛰️</div>
+      <p>Toca el mapa o busca un lugar para ver las condiciones para tu senderismo.</p>
+      <button id="use-location-btn" class="location-btn">📍 Usar mi ubicación</button>
+    </div>
+
+    <!-- Weather Info -->
     <div id="weather-info" class="weather-info hidden">
+
+      <!-- Location Header -->
       <div class="location-header">
         <h2 id="location-name">Ciudad</h2>
-        <p id="coords-display"
-          style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px; margin-bottom: 4px; font-family: monospace;">
-        </p>
-        <p id="weather-desc">Descripción</p>
-      </div>
-
-      <div class="main-temp-container">
-        <!-- Animated Weather Icon -->
-        <div id="weather-icon-container" class="weather-icon">
-          <!-- SVG paths will be injected here via JS -->
+        <div class="location-meta">
+          <span id="elevation-display" class="meta-badge elevation-badge hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            <span id="elevation-value">-- m</span>
+          </span>
+          <span id="coords-display" class="meta-badge"></span>
         </div>
-        <h1 id="temperature" class="temperature">--°</h1>
       </div>
 
-      <!-- Weather Details Grid -->
+      <!-- Safety Badge -->
+      <div id="safety-badge" class="safety-badge safety-safe">
+        <span id="safety-icon" class="safety-icon-char">✓</span>
+        <div class="safety-text">
+          <span id="safety-title" class="safety-title">CONDICIONES IDEALES</span>
+          <span id="safety-detail" class="safety-detail">Perfecto para senderismo</span>
+        </div>
+      </div>
+
+      <!-- Main Temperature -->
+      <div class="main-temp-container">
+        <div id="weather-icon-container" class="weather-icon"></div>
+        <div class="temp-block">
+          <h1 id="temperature" class="temperature">--°</h1>
+          <p id="weather-desc" class="weather-desc-text">Descripción</p>
+          <span id="feels-like" class="feels-like">Se siente: --°</span>
+        </div>
+      </div>
+
+      <!-- Hiker Metrics Grid -->
       <div class="weather-details">
+
+        <!-- UV Index -->
         <div class="detail-item">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78"
+              y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78"
+              y2="4.22"></line>
           </svg>
           <div class="detail-text">
-            <span class="detail-label">Humedad</span>
-            <span id="humidity" class="detail-value">--%</span>
+            <span class="detail-label">Índice UV</span>
+            <span id="uv-index" class="detail-value">--</span>
           </div>
         </div>
+
+        <!-- Precipitation Probability -->
         <div class="detail-item">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" y1="19" x2="8" y2="21"></line>
+            <line x1="8" y1="13" x2="8" y2="15"></line>
+            <line x1="16" y1="19" x2="16" y2="21"></line>
+            <line x1="16" y1="13" x2="16" y2="15"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="12" y1="15" x2="12" y2="17"></line>
+            <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"></path>
+          </svg>
+          <div class="detail-text">
+            <span class="detail-label">Prob. Lluvia</span>
+            <span id="precip-prob" class="detail-value">--%</span>
+          </div>
+        </div>
+
+        <!-- Wind Speed + Direction -->
+        <div class="detail-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2">
             </path>
@@ -67,39 +141,111 @@
             <span id="wind-speed" class="detail-value">-- km/h</span>
           </div>
         </div>
-      </div>
 
-      <!-- 3-Day Forecast -->
-      <div id="forecast-container" class="forecast-container hidden">
-        <h3 class="forecast-title">Próximos 3 días</h3>
-        <div id="forecast-days" class="forecast-days">
-          <!-- Days injected via JS -->
+        <!-- Wind Gusts -->
+        <div class="detail-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"></path>
+            <path d="M9.6 4.6A2 2 0 1 1 11 8H2"></path>
+            <path d="M12.6 19.4A2 2 0 1 0 14 16H2"></path>
+          </svg>
+          <div class="detail-text">
+            <span class="detail-label">Ráfagas</span>
+            <span id="wind-gusts" class="detail-value">-- km/h</span>
+          </div>
         </div>
 
-        <!-- Hourly Forecast View (Hidden by default) -->
+        <!-- Sunrise -->
+        <div class="detail-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 18a5 5 0 0 0-10 0"></path>
+            <line x1="12" y1="2" x2="12" y2="9"></line>
+            <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+            <line x1="1" y1="18" x2="3" y2="18"></line>
+            <line x1="21" y1="18" x2="23" y2="18"></line>
+            <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+            <line x1="23" y1="22" x2="1" y2="22"></line>
+            <polyline points="8 6 12 2 16 6"></polyline>
+          </svg>
+          <div class="detail-text">
+            <span class="detail-label">Amanecer</span>
+            <span id="sunrise-time" class="detail-value">--:--</span>
+          </div>
+        </div>
+
+        <!-- Sunset -->
+        <div class="detail-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 18a5 5 0 0 0-10 0"></path>
+            <line x1="12" y1="9" x2="12" y2="2"></line>
+            <line x1="4.22" y1="10.22" x2="5.64" y2="11.64"></line>
+            <line x1="1" y1="18" x2="3" y2="18"></line>
+            <line x1="21" y1="18" x2="23" y2="18"></line>
+            <line x1="18.36" y1="11.64" x2="19.78" y2="10.22"></line>
+            <line x1="23" y1="22" x2="1" y2="22"></line>
+            <polyline points="16 5 12 9 8 5"></polyline>
+          </svg>
+          <div class="detail-text">
+            <span class="detail-label">Atardecer</span>
+            <span id="sunset-time" class="detail-value">--:--</span>
+          </div>
+        </div>
+
+        <!-- Humidity -->
+        <div class="detail-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+          </svg>
+          <div class="detail-text">
+            <span class="detail-label">Humedad</span>
+            <span id="humidity" class="detail-value">--%</span>
+          </div>
+        </div>
+
+        <!-- Cloud Cover -->
+        <div class="detail-item">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path>
+          </svg>
+          <div class="detail-text">
+            <span class="detail-label">Nubosidad</span>
+            <span id="cloud-cover" class="detail-value">--%</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hiking Recommendation -->
+      <div class="hike-recommendation">
+        <svg class="rec-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+        </svg>
+        <p id="recommendation-text" class="rec-text">Analizando condiciones...</p>
+      </div>
+
+      <!-- 7-Day Forecast -->
+      <div id="forecast-container" class="forecast-container hidden">
+        <h3 class="forecast-title">Próximos 7 días</h3>
+        <div id="forecast-days" class="forecast-days"></div>
+
+        <!-- Hourly Forecast View -->
         <div id="hourly-forecast-container" class="hourly-container hidden">
           <div class="hourly-header">
             <span id="hourly-day-title">Horario</span>
             <button id="close-hourly-btn" class="close-btn">&times;</button>
           </div>
-          <div id="hourly-list" class="hourly-list">
-            <!-- Hourly items injected via JS -->
-          </div>
+          <div id="hourly-list" class="hourly-list"></div>
         </div>
       </div>
-    </div>
 
-    <!-- Loading State -->
-    <div id="loading-state" class="loading-state hidden">
-      <div class="spinner"></div>
-      <p>Buscando el cielo...</p>
     </div>
-
-    <!-- Initial State Instructions -->
-    <div id="initial-state" class="initial-state">
-      <p>Haz clic en cualquier punto del mapa para ver el clima de esa ubicación exacta.</p>
-    </div>
-
   </main>
 
   <script type="module" src="./main.js"></script>
